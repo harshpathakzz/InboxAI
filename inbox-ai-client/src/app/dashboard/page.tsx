@@ -1,6 +1,28 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import EmailParser from "@/components/email-parser/email-parser";
+import { SelectEmailNumber } from "@/components/select-email-number/select-email-number";
+
+interface Email {
+  id: string;
+  payload: {
+    headers: EmailHeader[];
+    body?: {
+      data?: string;
+    };
+    parts?: EmailPart[];
+  };
+}
 
 interface EmailHeader {
   name: string;
@@ -16,32 +38,25 @@ interface EmailPart {
   parts?: EmailPart[];
 }
 
-interface Email {
-  id: string;
-  payload: {
-    headers: EmailHeader[];
-    body?: {
-      data?: string;
-    };
-    parts?: EmailPart[];
-  };
-}
-
 const Home: React.FC = () => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [maxEmailsToDisplay, setMaxEmailsToDisplay] = useState<number>(15);
 
   useEffect(() => {
     fetchEmails();
-  }, []);
+  }, [maxEmailsToDisplay]);
 
   const fetchEmails = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/emails`, {
-        method: "GET",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `http://localhost:5000/emails?maxResults=${maxEmailsToDisplay}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
       const data = await response.json();
       console.log("Fetched Emails:", data);
       setEmails(data);
@@ -57,81 +72,46 @@ const Home: React.FC = () => {
     return header ? header.value : "Unknown";
   };
 
-  const decodeBase64 = (str: string) => {
-    return decodeURIComponent(
-      escape(window.atob(str.replace(/-/g, "+").replace(/_/g, "/")))
-    );
-  };
-
-  const findBody = (parts: EmailPart[]): { text: string; html: string } => {
-    let result = { text: "", html: "" };
-    if (!parts) return result;
-
-    for (const part of parts) {
-      if (part.mimeType === "text/plain" && part.body.data) {
-        result.text += decodeBase64(part.body.data);
-      } else if (part.mimeType === "text/html" && part.body.data) {
-        result.html += decodeBase64(part.body.data);
-      } else if (part.parts) {
-        const nestedResult = findBody(part.parts);
-        result = {
-          text: result.text + nestedResult.text,
-          html: result.html + nestedResult.html,
-        };
-      }
-    }
-    return result;
+  const handleValueChange = (value: number) => {
+    setMaxEmailsToDisplay(value);
+    console.log("Maximum Emails to Display:", value);
   };
 
   return (
     <div>
       <h1>Gmail Inbox</h1>
+      <div>
+        <SelectEmailNumber defaultValue={15} onChange={handleValueChange} />
+      </div>
       {isLoading ? (
         <p>Loading...</p>
       ) : (
-        <div>
+        <div className="flex flex-col items-center gap-4 m-4">
           {emails.length > 0 ? (
-            emails.map((email, index) => {
-              let bodyContent = { text: "", html: "" };
-
-              if (email.payload.parts) {
-                bodyContent = findBody(email.payload.parts);
-              } else if (email.payload.body?.data) {
-                const decodedBody = decodeBase64(email.payload.body.data);
-                // Assuming HTML content if no parts and direct body data
-                bodyContent.html = decodedBody;
-              }
-
-              return (
-                <div
-                  key={index}
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "10px",
-                    marginBottom: "10px",
-                  }}
-                >
-                  <p>
-                    <strong>From:</strong>{" "}
-                    {getHeader(email.payload.headers, "From")}
-                  </p>
-                  <p>
-                    <strong>Subject:</strong>{" "}
-                    {getHeader(email.payload.headers, "Subject")}
-                  </p>
-                  <hr />
-                  <div>
-                    {bodyContent.html ? (
-                      <div
-                        dangerouslySetInnerHTML={{ __html: bodyContent.html }}
-                      />
-                    ) : (
-                      <p>{bodyContent.text}</p>
-                    )}
+            emails.map((email, index) => (
+              <Sheet key={index}>
+                <SheetTrigger asChild>
+                  <div className="p-4 border-l-4 border cursor-pointer w-3/4">
+                    <p>
+                      <strong>From:</strong>{" "}
+                      {getHeader(email.payload.headers, "From")}
+                    </p>
+                    <p>
+                      <strong>Subject:</strong>{" "}
+                      {getHeader(email.payload.headers, "Subject")}
+                    </p>
                   </div>
-                </div>
-              );
-            })
+                </SheetTrigger>
+                <SheetContent className="overflow-y-auto  xl:w-[1000px] xl:max-w-none sm:w-[400px] sm:max-w-[540px] ">
+                  <SheetHeader>
+                    <SheetTitle>Email Details</SheetTitle>
+                  </SheetHeader>
+                  <SheetDescription className="overflow-y-auto">
+                    <EmailParser email={email} />
+                  </SheetDescription>
+                </SheetContent>
+              </Sheet>
+            ))
           ) : (
             <p>No emails found.</p>
           )}
