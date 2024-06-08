@@ -3,6 +3,7 @@ import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
 import cors from "cors";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -13,7 +14,8 @@ const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 const oAuth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
-app.use(cors());
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+app.use(cookieParser());
 
 app.get("/auth/google", (req, res) => {
   const url = oAuth2Client.generateAuthUrl({
@@ -24,30 +26,79 @@ app.get("/auth/google", (req, res) => {
 });
 
 app.get("/auth/google/callback", async (req, res) => {
-  const code = req.query.code;
-  const { tokens } = await oAuth2Client.getToken(code);
-  oAuth2Client.setCredentials(tokens);
-  res.redirect(`http://localhost:3000?tokens=${JSON.stringify(tokens)}`);
-});
+  try {
+    const code = req.query.code;
+    if (!code) {
+      // return res.status(400).json({ error: "Missing code parameter" });
+      return res.redirect(`http://localhost:3000/grant-access`);
+    }
 
-app.get("/emails", async (req, res) => {
-  const { access_token } = req.query;
-  oAuth2Client.setCredentials({ access_token });
-  const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
-  const response = await gmail.users.messages.list({
-    userId: "me",
-    maxResults: 10,
-  });
-  const messages = response.data.messages || [];
-  const emailPromises = messages.map(async (msg) => {
-    const message = await gmail.users.messages.get({
-      userId: "me",
-      id: msg.id,
+    const { tokens } = await oAuth2Client.getToken(code);
+    oAuth2Client.setCredentials(tokens);
+
+    res.cookie("tokens", JSON.stringify(tokens), {
+      httpOnly: false,
+      secure: false,
     });
-    return message.data;
-  });
-  const emails = await Promise.all(emailPromises);
-  res.json(emails);
+
+    res.redirect(`http://localhost:3000/dashboard`);
+  } catch (err) {
+    console.error("Error during Google OAuth callback:", err);
+    res.status(500).json({ error: "Failed to authenticate with Google" });
+  }
+});
+app.get("/emails", async (req, res) => {
+  const tokens = req.cookies.tokens;
+  if (!tokens) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  let access_token;
+  try {
+    const parsedTokens = JSON.parse(tokens);
+    access_token = parsedTokens.access_token;
+  } catch (err) {
+    return res.status(400).json({ error: "Invalid token format" });
+  }
+
+  let gmail;
+  try {
+    oAuth2Client.setCredentials({ access_token });
+    gmail = google.gmail({ version: "v1", auth: oAuth2Client });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to create Gmail client" });
+  }
+
+  try {
+    const response = await gmail.users.messages.list({
+      userId: "me",
+      maxResults: 10,
+    });
+    const messages = response.data.messages || [];
+
+    const emailPromises = messages.map(async (msg) => {
+      try {
+        const message = await gmail.users.messages.get({
+          userId: "me",
+          id: msg.id,
+        });
+        return message.data;
+      } catch (err) {
+        console.error(`Failed to retrieve email ${msg.id}:`, err);
+        return null; // or handle the error differently
+      }
+    });
+
+    try {
+      const emails = await Promise.all(emailPromises);
+      res.json(emails);
+    } catch (err) {
+      console.error("Failed to retrieve emails:", err);
+      res.status(500).json({ error: "Failed to retrieve emails" });
+    }
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to retrieve email list" });
+  }
 });
 
 app.listen(port, () => {
