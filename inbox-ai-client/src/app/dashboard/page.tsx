@@ -1,6 +1,28 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import EmailParser from "@/components/email-parser/email-parser";
+
+interface Email {
+  id: string;
+  payload: {
+    headers: EmailHeader[];
+    body?: {
+      data?: string;
+    };
+    parts?: EmailPart[];
+  };
+}
 
 interface EmailHeader {
   name: string;
@@ -14,17 +36,6 @@ interface EmailPart {
     data?: string;
   };
   parts?: EmailPart[];
-}
-
-interface Email {
-  id: string;
-  payload: {
-    headers: EmailHeader[];
-    body?: {
-      data?: string;
-    };
-    parts?: EmailPart[];
-  };
 }
 
 const Home: React.FC = () => {
@@ -57,32 +68,6 @@ const Home: React.FC = () => {
     return header ? header.value : "Unknown";
   };
 
-  const decodeBase64 = (str: string) => {
-    return decodeURIComponent(
-      escape(window.atob(str.replace(/-/g, "+").replace(/_/g, "/")))
-    );
-  };
-
-  const findBody = (parts: EmailPart[]): { text: string; html: string } => {
-    let result = { text: "", html: "" };
-    if (!parts) return result;
-
-    for (const part of parts) {
-      if (part.mimeType === "text/plain" && part.body.data) {
-        result.text += decodeBase64(part.body.data);
-      } else if (part.mimeType === "text/html" && part.body.data) {
-        result.html += decodeBase64(part.body.data);
-      } else if (part.parts) {
-        const nestedResult = findBody(part.parts);
-        result = {
-          text: result.text + nestedResult.text,
-          html: result.html + nestedResult.html,
-        };
-      }
-    }
-    return result;
-  };
-
   return (
     <div>
       <h1>Gmail Inbox</h1>
@@ -91,47 +76,30 @@ const Home: React.FC = () => {
       ) : (
         <div>
           {emails.length > 0 ? (
-            emails.map((email, index) => {
-              let bodyContent = { text: "", html: "" };
-
-              if (email.payload.parts) {
-                bodyContent = findBody(email.payload.parts);
-              } else if (email.payload.body?.data) {
-                const decodedBody = decodeBase64(email.payload.body.data);
-                // Assuming HTML content if no parts and direct body data
-                bodyContent.html = decodedBody;
-              }
-
-              return (
-                <div
-                  key={index}
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "10px",
-                    marginBottom: "10px",
-                  }}
-                >
-                  <p>
-                    <strong>From:</strong>{" "}
-                    {getHeader(email.payload.headers, "From")}
-                  </p>
-                  <p>
-                    <strong>Subject:</strong>{" "}
-                    {getHeader(email.payload.headers, "Subject")}
-                  </p>
-                  <hr />
-                  <div>
-                    {bodyContent.html ? (
-                      <div
-                        dangerouslySetInnerHTML={{ __html: bodyContent.html }}
-                      />
-                    ) : (
-                      <p>{bodyContent.text}</p>
-                    )}
+            emails.map((email, index) => (
+              <Sheet key={index}>
+                <SheetTrigger asChild>
+                  <div className="p-4 border border-gray-200 cursor-pointer">
+                    <p>
+                      <strong>From:</strong>{" "}
+                      {getHeader(email.payload.headers, "From")}
+                    </p>
+                    <p>
+                      <strong>Subject:</strong>{" "}
+                      {getHeader(email.payload.headers, "Subject")}
+                    </p>
                   </div>
-                </div>
-              );
-            })
+                </SheetTrigger>
+                <SheetContent className="overflow-y-auto  xl:w-[1000px] xl:max-w-none sm:w-[400px] sm:max-w-[540px] bg-red-400">
+                  <SheetHeader>
+                    <SheetTitle>Email Details</SheetTitle>
+                  </SheetHeader>
+                  <SheetDescription className="overflow-y-auto">
+                    <EmailParser email={email} />
+                  </SheetDescription>
+                </SheetContent>
+              </Sheet>
+            ))
           ) : (
             <p>No emails found.</p>
           )}
