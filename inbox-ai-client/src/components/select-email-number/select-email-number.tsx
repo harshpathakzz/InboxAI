@@ -44,7 +44,7 @@ export function SelectEmailNumber({
 
   return (
     <Select value={selectedNumber.toString()} onValueChange={handleSelect}>
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger className="w-fit">
         <SelectValue placeholder="Select a number" />
       </SelectTrigger>
       <SelectContent>

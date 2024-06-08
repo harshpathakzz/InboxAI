@@ -82,17 +82,16 @@ const Home: React.FC = () => {
       <h1>Gmail Inbox</h1>
       <div>
         <SelectEmailNumber defaultValue={15} onChange={handleValueChange} />
-        <p>Maximum Emails to Display: {maxEmailsToDisplay}</p>
       </div>
       {isLoading ? (
         <p>Loading...</p>
       ) : (
-        <div>
+        <div className="flex flex-col items-center gap-4 m-4">
           {emails.length > 0 ? (
             emails.map((email, index) => (
               <Sheet key={index}>
                 <SheetTrigger asChild>
-                  <div className="p-4 border border-gray-200 cursor-pointer">
+                  <div className="p-4 border-l-4 border cursor-pointer w-3/4">
                     <p>
                       <strong>From:</strong>{" "}
                       {getHeader(email.payload.headers, "From")}
@@ -103,7 +102,7 @@ const Home: React.FC = () => {
                     </p>
                   </div>
                 </SheetTrigger>
-                <SheetContent className="overflow-y-auto  xl:w-[1000px] xl:max-w-none sm:w-[400px] sm:max-w-[540px] bg-red-400">
+                <SheetContent className="overflow-y-auto  xl:w-[1000px] xl:max-w-none sm:w-[400px] sm:max-w-[540px] ">
                   <SheetHeader>
                     <SheetTitle>Email Details</SheetTitle>
                   </SheetHeader>
