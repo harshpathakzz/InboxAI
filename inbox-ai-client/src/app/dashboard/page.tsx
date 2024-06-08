@@ -63,18 +63,21 @@ const Home: React.FC = () => {
     );
   };
 
-  const findBody = (parts: EmailPart[]): { text?: string; html?: string } => {
+  const findBody = (parts: EmailPart[]): { text: string; html: string } => {
     let result = { text: "", html: "" };
     if (!parts) return result;
 
     for (const part of parts) {
       if (part.mimeType === "text/plain" && part.body.data) {
-        result.text = decodeBase64(part.body.data);
+        result.text += decodeBase64(part.body.data);
       } else if (part.mimeType === "text/html" && part.body.data) {
-        result.html = decodeBase64(part.body.data);
+        result.html += decodeBase64(part.body.data);
       } else if (part.parts) {
         const nestedResult = findBody(part.parts);
-        result = { ...result, ...nestedResult };
+        result = {
+          text: result.text + nestedResult.text,
+          html: result.html + nestedResult.html,
+        };
       }
     }
     return result;
@@ -89,13 +92,15 @@ const Home: React.FC = () => {
         <div>
           {emails.length > 0 ? (
             emails.map((email, index) => {
-              const bodyContent = email.payload.parts
-                ? findBody(email.payload.parts)
-                : {
-                    text: email.payload.body?.data
-                      ? decodeBase64(email.payload.body.data)
-                      : "",
-                  };
+              let bodyContent = { text: "", html: "" };
+
+              if (email.payload.parts) {
+                bodyContent = findBody(email.payload.parts);
+              } else if (email.payload.body?.data) {
+                const decodedBody = decodeBase64(email.payload.body.data);
+                // Assuming HTML content if no parts and direct body data
+                bodyContent.html = decodedBody;
+              }
 
               return (
                 <div
