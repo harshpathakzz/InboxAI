@@ -70,12 +70,12 @@ app.get("/emails", async (req, res) => {
   }
 
   try {
+    const maxResults = req.query.maxResults || 10; // Retrieve the maxResults parameter from the query string, or use 10 as the default
     const response = await gmail.users.messages.list({
       userId: "me",
-      maxResults: 10,
+      maxResults: maxResults,
     });
     const messages = response.data.messages || [];
-
     const emailPromises = messages.map(async (msg) => {
       try {
         const message = await gmail.users.messages.get({
@@ -88,7 +88,6 @@ app.get("/emails", async (req, res) => {
         return null; // or handle the error differently
       }
     });
-
     try {
       const emails = await Promise.all(emailPromises);
       res.json(emails);

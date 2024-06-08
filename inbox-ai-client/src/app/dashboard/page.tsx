@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import {
   Sheet,
@@ -12,6 +11,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import EmailParser from "@/components/email-parser/email-parser";
+import { SelectEmailNumber } from "@/components/select-email-number/select-email-number";
 
 interface Email {
   id: string;
@@ -41,18 +41,22 @@ interface EmailPart {
 const Home: React.FC = () => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [maxEmailsToDisplay, setMaxEmailsToDisplay] = useState<number>(15);
 
   useEffect(() => {
     fetchEmails();
-  }, []);
+  }, [maxEmailsToDisplay]);
 
   const fetchEmails = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/emails`, {
-        method: "GET",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `http://localhost:5000/emails?maxResults=${maxEmailsToDisplay}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
       const data = await response.json();
       console.log("Fetched Emails:", data);
       setEmails(data);
@@ -68,9 +72,18 @@ const Home: React.FC = () => {
     return header ? header.value : "Unknown";
   };
 
+  const handleValueChange = (value: number) => {
+    setMaxEmailsToDisplay(value);
+    console.log("Maximum Emails to Display:", value);
+  };
+
   return (
     <div>
       <h1>Gmail Inbox</h1>
+      <div>
+        <SelectEmailNumber defaultValue={15} onChange={handleValueChange} />
+        <p>Maximum Emails to Display: {maxEmailsToDisplay}</p>
+      </div>
       {isLoading ? (
         <p>Loading...</p>
       ) : (
