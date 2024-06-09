@@ -15,7 +15,7 @@ export const googleAuthCallback = async (req, res) => {
   try {
     const code = req.query.code;
     if (!code) {
-      return res.redirect("http://localhost:3000");
+      return res.redirect("https://inbox-ai-lac.vercel.app");
     }
     const { tokens } = await oAuth2Client.getToken(code);
     oAuth2Client.setCredentials(tokens);
@@ -23,7 +23,7 @@ export const googleAuthCallback = async (req, res) => {
       httpOnly: true,
       secure: true,
     });
-    res.redirect("http://localhost:3000/dashboard");
+    res.redirect("https://inbox-ai-lac.vercel.app/dashboard");
   } catch (err) {
     console.error("Error during Google OAuth callback:", err);
     res.status(500).json({ error: "Failed to authenticate with Google" });
@@ -49,7 +49,7 @@ export const logout = async (req, res) => {
       secure: true,
     });
 
-    res.redirect("http://localhost:3000");
+    res.redirect("https://inbox-ai-lac.vercel.app");
   } catch (err) {
     console.error("Error during logout:", err);
     res.status(500).json({ error: "Failed to logout" });
