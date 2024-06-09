@@ -1,17 +1,16 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import EmailParser from "@/components/email-parser/email-parser";
+
+import React, { useState, useEffect, useCallback } from "react";
+import EmailListItem from "@/components/email-list-item/email-list-item";
 import { SelectEmailNumber } from "@/components/select-email-number/select-email-number";
+import parseEmail from "@/hooks/ParseEmail";
+import useEmailStore from "@/stores/useEmailStore";
+import ClassificationButton from "@/components/classification-button/classification-button";
+import ApiKeyInput from "@/components/api-key-input/api-key-input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 interface Email {
   id: string;
@@ -22,6 +21,7 @@ interface Email {
     };
     parts?: EmailPart[];
   };
+  snippet: string;
 }
 
 interface EmailHeader {
@@ -38,83 +38,154 @@ interface EmailPart {
   parts?: EmailPart[];
 }
 
+interface UserInfo {
+  username: string;
+  email: string | null;
+  avatar: string | null;
+}
+
 const Home: React.FC = () => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [maxEmailsToDisplay, setMaxEmailsToDisplay] = useState<number>(15);
+  const [maxEmailsToDisplay, setMaxEmailsToDisplay] = useState<number>(2);
+  const { setEmails: setEmailStore } = useEmailStore();
+  const { emails: emailStore } = useEmailStore();
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const router = useRouter();
 
-  useEffect(() => {
-    fetchEmails();
-  }, [maxEmailsToDisplay]);
-
-  const fetchEmails = async () => {
-    setIsLoading(true);
+  const fetchUserInfo = useCallback(async () => {
     try {
-      const response = await fetch(
-        `http://localhost:5000/emails?maxResults=${maxEmailsToDisplay}`,
+      const response = await axios.get(
+        "http://localhost:5000/user/fetchUserInfo",
         {
-          method: "GET",
-          credentials: "include",
+          withCredentials: true,
         }
       );
-      const data = await response.json();
+
+      if (response.status === 401) {
+        router.push("/");
+        return;
+      }
+
+      const data = response.data;
+
+      setUserInfo(data);
+      console.log({ userInfo });
+    } catch (error) {
+      console.error("Error fetching user info:", error);
+    }
+  }, [router, userInfo]);
+
+  useEffect(() => {
+    fetchUserInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchEmails = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/emails?maxResults=${maxEmailsToDisplay}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (response.status === 401) {
+        router.push("/");
+        return;
+      }
+
+      const data = response.data;
       console.log("Fetched Emails:", data);
       setEmails(data);
+      const parsedEmails = data.map((email: Email) => {
+        const { id, from, subject, body, snippet } = parseEmail(email);
+        return {
+          id: email.id,
+          from,
+          subject,
+          body,
+          snippet,
+          classification: "unknown",
+        };
+      });
+      console.log("Parsed Emails:", parsedEmails);
+      setEmailStore(parsedEmails);
     } catch (error) {
       console.error("Error fetching emails:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [maxEmailsToDisplay, setEmailStore, router]);
 
-  const getHeader = (headers: EmailHeader[], name: string) => {
-    const header = headers.find((header) => header.name === name);
-    return header ? header.value : "Unknown";
-  };
+  useEffect(() => {
+    fetchEmails();
+  }, [fetchEmails, maxEmailsToDisplay]);
 
   const handleValueChange = (value: number) => {
     setMaxEmailsToDisplay(value);
     console.log("Maximum Emails to Display:", value);
   };
 
+  const handleLogout = async () => {
+    try {
+      await axios.get("http://localhost:5000/auth/logout", {
+        withCredentials: true,
+      });
+      router.push("/");
+      console.log("Logged out successfully.");
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+
   return (
-    <div>
-      <h1>Gmail Inbox</h1>
-      <div>
-        <SelectEmailNumber defaultValue={15} onChange={handleValueChange} />
+    <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <h1 className="text-4xl font-bold text-center mb-8 tracking-wide">
+        InboxAI
+      </h1>
+      <div className="flex justify-between mb-6">
+        <div>
+          {userInfo && (
+            <div className="flex items-center gap-4">
+              {userInfo.avatar && (
+                <Avatar>
+                  <AvatarImage src={userInfo.avatar} />
+                  <AvatarFallback>{userInfo.username[0]}</AvatarFallback>
+                </Avatar>
+              )}
+              <div>
+                <p className="font-bold">{userInfo.username}</p>
+                {userInfo.email && <p>{userInfo.email}</p>}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-4">
+          <ApiKeyInput />
+          <Button variant="outline" onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
+      </div>
+      <div className="flex justify-between mb-6">
+        <SelectEmailNumber defaultValue={2} onChange={handleValueChange} />
+        <ClassificationButton />
       </div>
       {isLoading ? (
-        <p>Loading...</p>
+        <p className="text-center text-lg">Loading...</p>
       ) : (
-        <div className="flex flex-col items-center gap-4 m-4">
-          {emails.length > 0 ? (
-            emails.map((email, index) => (
-              <Sheet key={index}>
-                <SheetTrigger asChild>
-                  <div className="p-4 border-l-4 border cursor-pointer w-3/4">
-                    <p>
-                      <strong>From:</strong>{" "}
-                      {getHeader(email.payload.headers, "From")}
-                    </p>
-                    <p>
-                      <strong>Subject:</strong>{" "}
-                      {getHeader(email.payload.headers, "Subject")}
-                    </p>
-                  </div>
-                </SheetTrigger>
-                <SheetContent className="overflow-y-auto  xl:w-[1000px] xl:max-w-none sm:w-[400px] sm:max-w-[540px] ">
-                  <SheetHeader>
-                    <SheetTitle>Email Details</SheetTitle>
-                  </SheetHeader>
-                  <SheetDescription className="overflow-y-auto">
-                    <EmailParser email={email} />
-                  </SheetDescription>
-                </SheetContent>
-              </Sheet>
-            ))
-          ) : (
-            <p>No emails found.</p>
-          )}
+        <div className="flex flex-col items-center gap-6">
+          <div className="w-full flex flex-col items-center gap-4 ">
+            {emailStore.length > 0 ? (
+              emailStore.map((email) => (
+                <EmailListItem key={email.id} email={email} />
+              ))
+            ) : (
+              <p className="text-center text-lg">No emails found.</p>
+            )}
+          </div>
         </div>
       )}
     </div>
