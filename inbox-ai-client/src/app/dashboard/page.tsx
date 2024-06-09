@@ -56,7 +56,7 @@ const Home: React.FC = () => {
   const fetchUserInfo = useCallback(async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/user/fetchUserInfo",
+        "https://inboxai-c6fv.onrender.com/user/fetchUserInfo",
         {
           withCredentials: true,
         }
@@ -85,7 +85,7 @@ const Home: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:5000/emails?maxResults=${maxEmailsToDisplay}`,
+        `https://inboxai-c6fv.onrender.com/emails?maxResults=${maxEmailsToDisplay}`,
         {
           withCredentials: true,
         }
@@ -130,7 +130,7 @@ const Home: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get("http://localhost:5000/auth/logout", {
+      await axios.get("https://inboxai-c6fv.onrender.com/auth/logout", {
         withCredentials: true,
       });
       router.push("/");

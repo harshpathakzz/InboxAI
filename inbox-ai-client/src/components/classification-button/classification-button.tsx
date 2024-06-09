@@ -40,7 +40,7 @@ const ClassificationButton: React.FC = () => {
           };
 
           const response = await axios.post(
-            "http://localhost:5000/ai/classify-email",
+            "https://inboxai-c6fv.onrender.com/ai/classify-email",
             requestBody
           );
           const data = response.data;

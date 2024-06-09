@@ -8,7 +8,7 @@ import aiRoutes from "./routes/aiRoutes.js";
 import userInfoRoutes from "./routes/userInfoRoutes.js";
 
 const app = express();
-app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+app.use(cors({ credentials: true, origin: "https://inbox-ai-lac.vercel.app" }));
 app.use(cookieParser());
 app.use(bodyParser.json());
 
