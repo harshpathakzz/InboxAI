@@ -32,10 +32,18 @@ interface ParsedEmail {
   snippet: string;
 }
 
+// Window scope detection
 const decodeBase64 = (str: string) => {
-  return decodeURIComponent(
-    escape(window.atob(str.replace(/-/g, "+").replace(/_/g, "/")))
-  );
+  if (typeof window !== "undefined") {
+    // Window object is available, use the existing implementation
+    return decodeURIComponent(
+      escape(window.atob(str.replace(/-/g, "+").replace(/_/g, "/")))
+    );
+  } else {
+    // Window object is not available (server-side rendering)
+    // You can provide a fallback implementation here, or simply return the input string
+    return str;
+  }
 };
 
 const getHeader = (headers: EmailHeader[], name: string) => {
@@ -46,7 +54,6 @@ const getHeader = (headers: EmailHeader[], name: string) => {
 const findBody = (parts: EmailPart[]): { text: string; html: string } => {
   let result = { text: "", html: "" };
   if (!parts) return result;
-
   for (const part of parts) {
     if (part.mimeType === "text/plain" && part.body.data) {
       result.text += decodeBase64(part.body.data);
@@ -65,14 +72,12 @@ const findBody = (parts: EmailPart[]): { text: string; html: string } => {
 
 const parseEmail = (email: Email): ParsedEmail => {
   let bodyContent = { text: "", html: "" };
-
   if (email.payload.parts) {
     bodyContent = findBody(email.payload.parts);
   } else if (email.payload.body?.data) {
     const decodedBody = decodeBase64(email.payload.body.data);
     bodyContent.html = decodedBody;
   }
-
   return {
     id: email.id,
     from: getHeader(email.payload.headers, "From"),
