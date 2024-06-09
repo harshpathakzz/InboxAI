@@ -6,7 +6,6 @@ export const fetchUserInfo = async (req, res) => {
   if (!tokens) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-
   let access_token;
   try {
     const parsedTokens = JSON.parse(tokens);
@@ -14,7 +13,6 @@ export const fetchUserInfo = async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: "Invalid token format" });
   }
-
   try {
     oAuth2Client.setCredentials({ access_token });
     // Fetch user profile (including name, email, and avatar)
@@ -24,10 +22,11 @@ export const fetchUserInfo = async (req, res) => {
       ? userInfo.emailAddresses[0].value
       : null;
     const avatar = userInfo.photos ? userInfo.photos[0].url : null;
-    // Send user information as JSON response
-    res.json({ username, email, avatar });
+
+    return res.json({ username, email, avatar });
   } catch (err) {
     console.error("Failed to retrieve user info:", err);
-    res.status(500).json({ error: "Failed to retrieve user info" });
+
+    return res.status(500).json({ error: "Failed to retrieve user info" });
   }
 };

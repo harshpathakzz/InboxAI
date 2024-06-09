@@ -36,13 +36,46 @@ interface EmailPart {
   parts?: EmailPart[];
 }
 
+interface UserInfo {
+  username: string;
+  email: string | null;
+  avatar: string | null;
+}
+
 const Home: React.FC = () => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [maxEmailsToDisplay, setMaxEmailsToDisplay] = useState<number>(2);
   const { setEmails: setEmailStore } = useEmailStore();
   const { emails: emailStore } = useEmailStore();
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const router = useRouter();
+
+  const fetchUserInfo = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/user/fetchUserInfo",
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (response.status === 401) {
+        router.push("/");
+        return;
+      }
+
+      const data = response.data;
+      console.log("Fetched UserInfo:", data);
+      setUserInfo(data);
+    } catch (error) {
+      console.error("Error fetching user info:", error);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    fetchUserInfo();
+  }, [fetchUserInfo]);
 
   const fetchEmails = useCallback(async () => {
     setIsLoading(true);

@@ -1,5 +1,7 @@
 import { google } from "googleapis";
+
 const people = google.people({ version: "v1" });
+
 export const getUserInfo = async (auth) => {
   try {
     const response = await people.people.get({

@@ -3,7 +3,10 @@ import oAuth2Client from "../config/oauth2Client.js";
 export const googleAuth = (req, res) => {
   const url = oAuth2Client.generateAuthUrl({
     access_type: "offline",
-    scope: ["https://www.googleapis.com/auth/gmail.readonly"],
+    scope: [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/userinfo.profile",
+    ],
   });
   res.redirect(url);
 };
