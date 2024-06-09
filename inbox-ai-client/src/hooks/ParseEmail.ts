@@ -14,6 +14,7 @@ interface EmailPart {
 
 interface Email {
   id: string;
+  snippet: string;
   payload: {
     headers: EmailHeader[];
     body?: {
@@ -24,9 +25,11 @@ interface Email {
 }
 
 interface ParsedEmail {
+  id: string;
   from: string;
   subject: string;
   body: string;
+  snippet: string;
 }
 
 const decodeBase64 = (str: string) => {
@@ -71,9 +74,11 @@ const parseEmail = (email: Email): ParsedEmail => {
   }
 
   return {
+    id: email.id,
     from: getHeader(email.payload.headers, "From"),
     subject: getHeader(email.payload.headers, "Subject"),
     body: bodyContent.html || bodyContent.text,
+    snippet: email.snippet,
   };
 };
 

@@ -5,6 +5,7 @@ interface EmailData {
   from: string;
   subject: string;
   body: string;
+  snippet: string;
   classification: string;
 }
 

@@ -15,6 +15,7 @@ interface Email {
     };
     parts?: EmailPart[];
   };
+  snippet: string;
 }
 
 interface EmailHeader {
@@ -36,6 +37,7 @@ const Home: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [maxEmailsToDisplay, setMaxEmailsToDisplay] = useState<number>(2);
   const { setEmails: setEmailStore } = useEmailStore();
+  const { emails: emailStore } = useEmailStore();
 
   const fetchEmails = useCallback(async () => {
     setIsLoading(true);
@@ -51,8 +53,15 @@ const Home: React.FC = () => {
       console.log("Fetched Emails:", data);
       setEmails(data);
       const parsedEmails = data.map((email: Email) => {
-        const { from, subject, body } = parseEmail(email);
-        return { id: email.id, from, subject, body, classfication: "unknown" }; // Fix syntax error here
+        const { id, from, subject, body, snippet } = parseEmail(email);
+        return {
+          id: email.id,
+          from,
+          subject,
+          body,
+          snippet,
+          classfication: "unknown",
+        };
       });
       console.log("Parsed Emails:", parsedEmails);
       setEmailStore(parsedEmails);
@@ -82,9 +91,9 @@ const Home: React.FC = () => {
         <p>Loading...</p>
       ) : (
         <div className="flex flex-col items-center gap-4 m-4">
-          {emails.length > 0 ? (
-            emails.map((email, index) => (
-              <EmailListItem key={index} email={email} />
+          {emailStore.length > 0 ? (
+            emailStore.map((email, index) => (
+              <EmailListItem key={email.id} email={email} />
             ))
           ) : (
             <p>No emails found.</p>

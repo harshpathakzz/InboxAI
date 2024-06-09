@@ -38,21 +38,27 @@ interface EmailPart {
 }
 
 interface EmailListItemProps {
-  email: Email;
+  email: EmailData;
+}
+interface EmailData {
+  id: string;
+  from: string;
+  subject: string;
+  body: string;
+  snippet: string;
+  classification: string;
 }
 
 const EmailListItem: React.FC<EmailListItemProps> = ({ email }) => {
-  const { from, subject, body } = useEmailParser(email);
-
   return (
     <Sheet>
       <SheetTrigger asChild>
         <div className="p-4 border-l-4 border cursor-pointer w-3/4">
           <p>
-            <strong>From:</strong> {from}
+            <strong>From:</strong> {email.from}
           </p>
           <p>
-            <strong>Subject:</strong> {subject}
+            <strong>Subject:</strong> {email.subject}
           </p>
         </div>
       </SheetTrigger>

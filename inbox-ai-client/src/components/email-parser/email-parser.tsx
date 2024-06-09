@@ -28,23 +28,30 @@ export interface Email {
 }
 
 interface EmailParserProps {
-  email: Email;
+  email: EmailData;
+}
+
+interface EmailData {
+  id: string;
+  from: string;
+  subject: string;
+  body: string;
+  snippet: string;
+  classification: string;
 }
 
 const EmailParser: React.FC<EmailParserProps> = ({ email }) => {
-  const { from, subject, body } = useEmailParser(email);
-
   return (
     <div className="p-4 border border-gray-200 rounded-lg shadow-md bg-white overflow-auto">
       <p>
-        <strong>From:</strong> {from}
+        <strong>From:</strong> {email.from}
       </p>
       <p>
-        <strong>Subject:</strong> {subject}
+        <strong>Subject:</strong> {email.subject}
       </p>
       <hr />
       <div className="overflow-auto">
-        <div dangerouslySetInnerHTML={{ __html: body }} />
+        <div dangerouslySetInnerHTML={{ __html: email.body }} />
       </div>
     </div>
   );
