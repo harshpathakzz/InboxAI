@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import {
   Select,
@@ -32,7 +34,7 @@ export function SelectEmailNumber({
 
   const generateOptions = () => {
     const options = [];
-    for (let i = 5; i <= 100; i += 5) {
+    for (let i = 1; i <= 20; i += 1) {
       options.push(
         <SelectItem key={i} value={i.toString()}>
           {i}
