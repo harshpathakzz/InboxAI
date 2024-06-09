@@ -20,8 +20,8 @@ export const googleAuthCallback = async (req, res) => {
     const { tokens } = await oAuth2Client.getToken(code);
     oAuth2Client.setCredentials(tokens);
     res.cookie("tokens", JSON.stringify(tokens), {
-      httpOnly: true,
-      secure: true,
+      httpOnly: false,
+      secure: false,
     });
     res.redirect("https://inbox-ai-lac.vercel.app/dashboard");
   } catch (err) {
