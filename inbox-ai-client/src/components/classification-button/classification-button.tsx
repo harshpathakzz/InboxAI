@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import useEmailStore from "@/stores/useEmailStore";
 import axios from "axios";
@@ -16,12 +16,15 @@ interface Email {
 const ClassificationButton: React.FC = () => {
   const { emails, updateClassification } = useEmailStore();
   const { apiKey: storedApiKey } = useApiKeyStore();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleClassification = async () => {
     if (!storedApiKey) {
       toast.warning("Please enter your API key to continue.");
       return;
     }
+
+    setIsLoading(true);
 
     try {
       const results = await Promise.allSettled(
@@ -61,16 +64,19 @@ const ClassificationButton: React.FC = () => {
     } catch (error) {
       console.error("Error classifying emails:", error);
       toast.error("Error classifying emails");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <Button
       variant="secondary"
-      className="w-full"
+      className="w-auto"
       onClick={handleClassification}
+      disabled={isLoading}
     >
-      Classify
+      {isLoading ? "Classifying..." : "Classify"}
     </Button>
   );
 };

@@ -12,7 +12,7 @@ export const googleAuthCallback = async (req, res) => {
   try {
     const code = req.query.code;
     if (!code) {
-      return res.redirect("http://localhost:3000/grant-access");
+      return res.redirect("http://localhost:3000");
     }
     const { tokens } = await oAuth2Client.getToken(code);
     oAuth2Client.setCredentials(tokens);
@@ -24,5 +24,31 @@ export const googleAuthCallback = async (req, res) => {
   } catch (err) {
     console.error("Error during Google OAuth callback:", err);
     res.status(500).json({ error: "Failed to authenticate with Google" });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    const tokens = req.cookies.tokens ? JSON.parse(req.cookies.tokens) : null;
+
+    if (tokens) {
+      const { access_token } = tokens;
+
+      // Revoke the token on Google's side
+      if (access_token) {
+        await oAuth2Client.revokeToken(access_token);
+      }
+    }
+
+    // Clear the cookies
+    res.clearCookie("tokens", {
+      httpOnly: true,
+      secure: true,
+    });
+
+    res.redirect("http://localhost:3000");
+  } catch (err) {
+    console.error("Error during logout:", err);
+    res.status(500).json({ error: "Failed to logout" });
   }
 };
