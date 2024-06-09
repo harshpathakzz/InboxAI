@@ -42,11 +42,11 @@ interface EmailData {
 
 const EmailParser: React.FC<EmailParserProps> = ({ email }) => {
   return (
-    <div className="p-4 border border-gray-200 rounded-lg shadow-md bg-white overflow-auto">
-      <p>
+    <div className="p-4 border  rounded-lg shadow-md overflow-auto m-2">
+      <p className="m-1">
         <strong>From:</strong> {email.from}
       </p>
-      <p>
+      <p className="m-1">
         <strong>Subject:</strong> {email.subject}
       </p>
       <hr />

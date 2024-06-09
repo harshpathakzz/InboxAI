@@ -60,7 +60,7 @@ const Home: React.FC = () => {
           subject,
           body,
           snippet,
-          classfication: "unknown",
+          classification: "unknown",
         };
       });
       console.log("Parsed Emails:", parsedEmails);

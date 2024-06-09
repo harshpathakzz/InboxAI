@@ -10,7 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import EmailParser from "@/components/email-parser/email-parser";
-import useEmailParser from "@/hooks/useEmailParser";
+import { Badge } from "@/components/ui/badge";
 
 interface Email {
   id: string;
@@ -53,13 +53,16 @@ const EmailListItem: React.FC<EmailListItemProps> = ({ email }) => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <div className="p-4 border-l-4 border cursor-pointer w-3/4">
-          <p>
-            <strong>From:</strong> {email.from}
-          </p>
-          <p>
-            <strong>Subject:</strong> {email.subject}
-          </p>
+        <div className="p-4 border-l-4 border cursor-pointer w-3/4 h-[20vh] flex justify-between items-center">
+          <div>
+            <p>
+              <strong>From:</strong> {email.from}
+            </p>
+            <p>
+              <strong>Subject:</strong> {email.subject}
+            </p>
+          </div>
+          <Badge variant="secondary">{email.classification}</Badge>
         </div>
       </SheetTrigger>
       <SheetContent className="overflow-y-auto  xl:w-[1000px] xl:max-w-none sm:w-[400px] sm:max-w-[540px] ">
