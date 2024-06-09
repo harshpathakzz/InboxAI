@@ -7,8 +7,8 @@ import parseEmail from "@/hooks/ParseEmail";
 import useEmailStore from "@/stores/useEmailStore";
 import ClassificationButton from "@/components/classification-button/classification-button";
 import ApiKeyInput from "@/components/api-key-input/api-key-input";
-import axios from "axios"; // Import Axios
-import { useRouter } from "next/navigation"; // Assuming you're using Next.js for routing
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 interface Email {
   id: string;
@@ -42,7 +42,7 @@ const Home: React.FC = () => {
   const [maxEmailsToDisplay, setMaxEmailsToDisplay] = useState<number>(2);
   const { setEmails: setEmailStore } = useEmailStore();
   const { emails: emailStore } = useEmailStore();
-  const router = useRouter(); // Hook for routing
+  const router = useRouter();
 
   const fetchEmails = useCallback(async () => {
     setIsLoading(true);
