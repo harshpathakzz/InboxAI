@@ -7,6 +7,8 @@ import parseEmail from "@/hooks/ParseEmail";
 import useEmailStore from "@/stores/useEmailStore";
 import ClassificationButton from "@/components/classification-button/classification-button";
 import ApiKeyInput from "@/components/api-key-input/api-key-input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
@@ -66,16 +68,18 @@ const Home: React.FC = () => {
       }
 
       const data = response.data;
-      console.log("Fetched UserInfo:", data);
+
       setUserInfo(data);
+      console.log({ userInfo });
     } catch (error) {
       console.error("Error fetching user info:", error);
     }
-  }, [router]);
+  }, [router, userInfo]);
 
   useEffect(() => {
     fetchUserInfo();
-  }, [fetchUserInfo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchEmails = useCallback(async () => {
     setIsLoading(true);
@@ -137,21 +141,32 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 text-white">
-      <h1 className="text-4xl font-bold text-center mb-8">InboxAI</h1>
+    <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <h1 className="text-4xl font-bold text-center mb-8 tracking-wide">
+        InboxAI
+      </h1>
       <div className="flex justify-between mb-6">
         <div>
-          <p className="font-bold">Deadpool</p>
-          <p>peterparker@marvel.com</p>
+          {userInfo && (
+            <div className="flex items-center gap-4">
+              {userInfo.avatar && (
+                <Avatar>
+                  <AvatarImage src={userInfo.avatar} />
+                  <AvatarFallback>{userInfo.username[0]}</AvatarFallback>
+                </Avatar>
+              )}
+              <div>
+                <p className="font-bold">{userInfo.username}</p>
+                {userInfo.email && <p>{userInfo.email}</p>}
+              </div>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-4">
           <ApiKeyInput />
-          <button
-            onClick={handleLogout}
-            className="py-2 px-4 border border-white rounded"
-          >
+          <Button variant="outline" onClick={handleLogout}>
             Logout
-          </button>
+          </Button>
         </div>
       </div>
       <div className="flex justify-between mb-6">
@@ -162,7 +177,7 @@ const Home: React.FC = () => {
         <p className="text-center text-lg">Loading...</p>
       ) : (
         <div className="flex flex-col items-center gap-6">
-          <div className="w-full max-w-4xl flex flex-col items-center gap-4 ">
+          <div className="w-full flex flex-col items-center gap-4 ">
             {emailStore.length > 0 ? (
               emailStore.map((email) => (
                 <EmailListItem key={email.id} email={email} />

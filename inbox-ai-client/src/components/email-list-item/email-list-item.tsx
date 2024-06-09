@@ -53,7 +53,7 @@ const EmailListItem: React.FC<EmailListItemProps> = ({ email }) => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <div className="p-4 border-l-4 border cursor-pointer w-3/4 h-[20vh] flex justify-between items-center">
+        <div className="p-4 border-l-4 border cursor-pointer w-3/4 h-auto flex justify-between items-center flex-wrap">
           <div>
             <p>
               <strong>From:</strong> {email.from}
@@ -62,7 +62,9 @@ const EmailListItem: React.FC<EmailListItemProps> = ({ email }) => {
               <strong>Subject:</strong> {email.subject}
             </p>
           </div>
-          <Badge variant="secondary">{email.classification}</Badge>
+          <Badge variant="secondary" className="mt-1">
+            {email.classification}
+          </Badge>
         </div>
       </SheetTrigger>
       <SheetContent className="overflow-y-auto  xl:w-[1000px] xl:max-w-none sm:w-[400px] sm:max-w-[540px] ">
