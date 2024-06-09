@@ -5,6 +5,8 @@ import EmailListItem from "@/components/email-list-item/email-list-item";
 import { SelectEmailNumber } from "@/components/select-email-number/select-email-number";
 import parseEmail from "@/hooks/ParseEmail";
 import useEmailStore from "@/stores/useEmailStore";
+import ClassificationButton from "@/components/classification-button/classification-button";
+import ApiKeyInput from "@/components/api-key-input/api-key-input";
 
 interface Email {
   id: string;
@@ -90,14 +92,18 @@ const Home: React.FC = () => {
       {isLoading ? (
         <p>Loading...</p>
       ) : (
-        <div className="flex flex-col items-center gap-4 m-4">
-          {emailStore.length > 0 ? (
-            emailStore.map((email, index) => (
-              <EmailListItem key={email.id} email={email} />
-            ))
-          ) : (
-            <p>No emails found.</p>
-          )}
+        <div>
+          <ClassificationButton />
+          <ApiKeyInput />
+          <div className="flex flex-col items-center gap-4 m-4">
+            {emailStore.length > 0 ? (
+              emailStore.map((email, index) => (
+                <EmailListItem key={email.id} email={email} />
+              ))
+            ) : (
+              <p>No emails found.</p>
+            )}
+          </div>
         </div>
       )}
     </div>

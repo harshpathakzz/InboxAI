@@ -3,5 +3,5 @@ import { classifyEmail } from "../controllers/aiController.js";
 import { verifyAuth } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
-router.get("/classify-email", classifyEmail);
+router.post("/classify-email", classifyEmail);
 export default router;

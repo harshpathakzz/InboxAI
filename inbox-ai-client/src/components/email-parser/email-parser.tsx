@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import useEmailParser from "@/hooks/useEmailParser";
+import { Badge } from "@/components/ui/badge";
 
 interface EmailHeader {
   name: string;
@@ -42,13 +42,18 @@ interface EmailData {
 
 const EmailParser: React.FC<EmailParserProps> = ({ email }) => {
   return (
-    <div className="p-4 border  rounded-lg shadow-md overflow-auto m-2">
-      <p className="m-1">
-        <strong>From:</strong> {email.from}
-      </p>
-      <p className="m-1">
-        <strong>Subject:</strong> {email.subject}
-      </p>
+    <div className="p-4 border rounded-lg shadow-md overflow-auto m-2">
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <p className="m-1">
+            <strong>From:</strong> {email.from}
+          </p>
+          <p className="m-1">
+            <strong>Subject:</strong> {email.subject}
+          </p>
+        </div>
+        <Badge variant="secondary">{email.classification}</Badge>
+      </div>
       <hr />
       <div className="overflow-auto">
         <div dangerouslySetInnerHTML={{ __html: email.body }} />

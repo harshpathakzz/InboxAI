@@ -8,11 +8,11 @@ const classifyEmailContent = async (apiKey, emailContent) => {
       {
         role: "system",
         content:
-          'You are a color classifier. You should return a JSON response with the following format: [{"is_primary": true/false}]',
+          'You are an email classifier that classifies emails, answer always in JSON format ["classify":"important"/"promotions"/"social"/"marketing"/"spam"] if non of these matches then it is "general"',
       },
       { role: "user", content: emailContent },
     ],
-    max_tokens: 300,
+    max_tokens: 10,
     response_format: { type: "json_object" },
   });
   const classification = completion.choices[0].message.content.trim();
@@ -21,7 +21,7 @@ const classifyEmailContent = async (apiKey, emailContent) => {
 
 export const classifyEmail = async (req, res) => {
   try {
-    const { apiKey, emailContent } = req.body;
+    const { id, apiKey, emailContent } = req.body;
 
     // Validate the API key
     if (!apiKey) {
