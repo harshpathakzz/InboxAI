@@ -13,8 +13,8 @@ const useApiKeyStore = create<ApiKeyState>()(
       setApiKey: (key: string) => set({ apiKey: key }),
     }),
     {
-      name: "api-key-storage", // unique name
-      getStorage: () => localStorage, // specify the storage type
+      name: "api-key-storage",
+      getStorage: () => localStorage,
     }
   )
 );

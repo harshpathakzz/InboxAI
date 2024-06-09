@@ -11,14 +11,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import useLocalStorage from "@/hooks/useLocalStorage";
+import useApiKeyStore from "@/stores/useApiKeyStore";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
-const ApiKeyInput = () => {
-  const [apiKey, setApiKey] = useState("");
-  const [storedApiKey, setStoredApiKey] = useLocalStorage("apiKey", "");
-  const [showDialog, setShowDialog] = useState(false);
+const ApiKeyInput: React.FC = () => {
+  const [apiKey, setApiKey] = useState<string>("");
+  const { apiKey: storedApiKey, setApiKey: setStoredApiKey } = useApiKeyStore();
+  const [showDialog, setShowDialog] = useState<boolean>(false);
 
   useEffect(() => {
     setApiKey(storedApiKey);
