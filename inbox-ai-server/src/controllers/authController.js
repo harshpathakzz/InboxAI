@@ -23,6 +23,8 @@ export const googleAuthCallback = async (req, res) => {
       httpOnly: false,
       secure: false,
     });
+    console.log("tokens: ", tokens);
+    console.log("Successfully authenticated with Google");
     res.redirect("https://inbox-ai-lac.vercel.app/dashboard");
   } catch (err) {
     console.error("Error during Google OAuth callback:", err);
