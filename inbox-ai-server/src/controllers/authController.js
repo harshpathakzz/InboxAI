@@ -22,6 +22,8 @@ export const googleAuthCallback = async (req, res) => {
     res.cookie("tokens", JSON.stringify(tokens), {
       httpOnly: false,
       secure: false,
+      sameSite: "none",
+      path: "/",
     });
     console.info("tokens: ", tokens);
     console.info("Successfully authenticated with Google");
